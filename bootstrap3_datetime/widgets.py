@@ -36,6 +36,7 @@ class DateTimePicker(DateTimeInput):
                         'ms-my': 'ms-my',
                         'pt-br': 'bt-BR',
                         'rs-latin': 'rs-latin',
+                        'ru-ru': 'ru',
                         'tzm-la': 'tzm-la',
                         'tzm': 'tzm',
                         'zh-cn': 'zh-CN',
@@ -80,12 +81,18 @@ class DateTimePicker(DateTimeInput):
         return format
 
     html_template = '''
+        <input%(input_attrs)s/>
+        '''
+
+    div_template = '''
         <div%(div_attrs)s>
-            <input%(input_attrs)s/>
-            <span class="input-group-addon">
-                <span%(icon_attrs)s></span>
-            </span>
+            %(content)s
         </div>'''
+
+    button_template = '''
+        <span class="input-group-addon">
+            <span%(icon_attrs)s></span>
+        </span>'''
 
     js_template = '''
         <script>
@@ -102,10 +109,18 @@ class DateTimePicker(DateTimeInput):
         </script>'''
 
     def __init__(self, attrs=None, format=None, options=None, div_attrs=None, icon_attrs=None):
+        self.hide_icon = False
+        self.hide_div = False
         if not icon_attrs:
-            icon_attrs = {'class': 'glyphicon glyphicon-calendar'}
+            if icon_attrs == None:
+                icon_attrs = {'class': 'glyphicon glyphicon-calendar'}
+            else:
+                self.hide_icon = True
         if not div_attrs:
-            div_attrs = {'class': 'input-group date'}
+            if div_attrs == None:
+                div_attrs = {'class': 'input-group date'}
+            else:
+                self.hide_div = True
         if format is None and options and options.get('format'):
             format = self.conv_datetime_format_js2py(options.get('format'))
         super(DateTimePicker, self).__init__(attrs, format)
@@ -131,15 +146,20 @@ class DateTimePicker(DateTimeInput):
             input_attrs['value'] = force_text(self._format_value(value))
         input_attrs = dict([(key, conditional_escape(val)) for key, val in input_attrs.items()])  # python2.6 compatible
         if not self.picker_id:
-            self.picker_id = input_attrs.get('id', '') + '_picker'
+            self.picker_id = input_attrs.get('id', '') + '' if self.hide_div else '_picker'
         self.div_attrs['id'] = self.picker_id
         picker_id = conditional_escape(self.picker_id)
         div_attrs = dict(
             [(key, conditional_escape(val)) for key, val in self.div_attrs.items()])  # python2.6 compatible
         icon_attrs = dict([(key, conditional_escape(val)) for key, val in self.icon_attrs.items()])
-        html = self.html_template % dict(div_attrs=flatatt(div_attrs),
-                                         input_attrs=flatatt(input_attrs),
-                                         icon_attrs=flatatt(icon_attrs))
+        html = self.html_template % dict(input_attrs=flatatt(input_attrs))
+        if not self.hide_icon:
+            html += self.button_template % dict(icon_attrs=flatatt(icon_attrs))
+        if not self.hide_div:
+            html = self.div_template % dict(div_attrs=flatatt(div_attrs), content=html)
+        # html = self.html_template % dict(div_attrs=flatatt(div_attrs),
+        #                                  input_attrs=flatatt(input_attrs),
+        #                                  icon_attrs=flatatt(icon_attrs))
         if not self.options:
             js = ''
         else:
