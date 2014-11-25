@@ -128,6 +128,8 @@ class DateTimePicker(DateTimeInput):
         input_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
         if value != '':
             # Only add the 'value' attribute if a value is non-empty.
+            if isinstance(value, datetime.time):
+                value = datetime.datetime(2014, 11, 25, value.hour, value.minute, value.second) # any date with value time
             input_attrs['value'] = force_text(self._format_value(value))
         input_attrs = dict([(key, conditional_escape(val)) for key, val in input_attrs.items()])  # python2.6 compatible
         if not self.picker_id:
