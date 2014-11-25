@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 from django.forms.util import flatatt
 from django.forms.widgets import DateTimeInput
 from django.utils import translation
